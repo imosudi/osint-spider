@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">OSINT Command Center</h1>
+    <p class="page-subtitle">Compile and manage digital footprint profiles from open sources</p>
+  </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="glass-panel stat-card" id="stat-targets-scanned">
+    <div class="stat-icon cyan">
+      <i class="fa-solid fa-users-viewfinder"></i>
+    </div>
+    <div>
+      <div class="stat-value" id="stats-total-targets">{{ targets|length }}</div>
+      <div class="stat-label">Targets Scanned</div>
+    </div>
+  </div>
+  
+  <div class="glass-panel stat-card" id="stat-platforms-tracked">
+    <div class="stat-icon purple">
+      <i class="fa-solid fa-circle-nodes"></i>
+    </div>
+    <div>
+      <div class="stat-value">7</div>
+      <div class="stat-label">Platforms Supported</div>
+    </div>
+  </div>
+
+  <div class="glass-panel stat-card" id="stat-network-status">
+    <div class="stat-icon emerald">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div>
+      <div class="stat-value">{% if online %}Active{% else %}Sandbox{% endif %}</div>
+      <div class="stat-label">API Status</div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Split Layout -->
+<div class="dashboard-split">
+  
+  <!-- Form Panel -->
+  <div class="glass-panel" style="align-self: start;">
+    <h2 style="font-size: 1.25rem; margin-bottom: 1.25rem; font-weight: 600;">
+      <i class="fa-solid fa-magnifying-glass-plus" style="color: var(--accent-cyan); margin-right: 0.5rem;"></i>
+      New Footprint Search
+    </h2>
+    
+    <form id="scrape-form" action="{{ url_for('scrape') }}" method="POST">
+      <div class="form-group">
+        <label for="target_name">Target Name *</label>
+        <input type="text" id="target_name" name="target_name" class="form-control" placeholder="Enter target full name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="target_email">Target Email (Optional)</label>
+        <input type="email" id="target_email" name="target_email" class="form-control" placeholder="Enter target email address (optional)">
+      </div>
+      
+      <div class="form-group">
+        <label for="github_username">GitHub Username (Optional)</label>
+        <input type="text" id="github_username" name="github_username" class="form-control" placeholder="Enter GitHub username (optional)">
+      </div>
+      
+      <button type="submit" id="btn-run-scrape" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+        <i class="fa-solid fa-crosshairs"></i> Run Intelligence Scan
+      </button>
+    </form>
+  </div>
+  
+  <!-- Gemini AI Settings Panel -->
+  <div class="glass-panel" style="margin-top: 1.5rem; align-self: start;">
+    <h2 style="font-size: 1.1rem; margin-bottom: 1rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+      <span>
+        <i class="fa-solid fa-brain" style="color: #c084fc; margin-right: 0.5rem;"></i>
+        Gemini AI Engine
+      </span>
+      {% if gemini_active %}
+        <span class="badge badge-gemini" style="font-size: 0.65rem;">Active</span>
+      {% else %}
+        <span class="badge badge-warning" style="font-size: 0.65rem;">Inactive</span>
+      {% endif %}
+    </h2>
+    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
+      Input a Gemini API Key to enable dynamic footprint generation customized to the target's name/handle.
+    </p>
+    <form action="{{ url_for('save_api_key') }}" method="POST">
+      <div class="form-group">
+        <label for="gemini_api_key">Gemini API Key</label>
+        <input type="password" id="gemini_api_key" name="gemini_api_key" class="form-control" placeholder="Enter API Key" value="{% if gemini_active %}••••••••••••••••••••{% endif %}" required>
+      </div>
+      <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem;">
+        <i class="fa-solid fa-key"></i> Save Key Configuration
+      </button>
+    </form>
+  </div>
+  
+  <!-- Profiles Table Panel -->
+  <div class="glass-panel">
+    <h2 style="font-size: 1.25rem; margin-bottom: 1.25rem; font-weight: 600;">
+      <i class="fa-solid fa-folder-open" style="color: var(--accent-purple); margin-right: 0.5rem;"></i>
+      Compiled Target Registries
+    </h2>
+    
+    <div class="table-container">
+      {% if targets %}
+        <table class="premium-table" id="targets-table">
+          <thead>
+            <tr>
+              <th>Target Profile</th>
+              <th>Compiled Date</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in targets %}
+              <tr id="target-row-{{ t.id }}">
+                <td>
+                  <div class="target-info">
+                    <span class="target-name">{{ t.name }}</span>
+                    <span class="target-email">{{ t.email }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="font-size: 0.9rem; color: var(--text-secondary);">{{ t.last_modified }}</span>
+                </td>
+                <td style="text-align: right;">
+                  <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                    <a href="{{ url_for('profile', target_id=t.id) }}" class="btn btn-secondary btn-sm" id="btn-view-{{ t.id }}" title="View Profile">
+                      <i class="fa-solid fa-eye"></i> View
+                    </a>
+                    <a href="{{ url_for('download', target_id=t.id) }}" class="btn btn-secondary btn-sm" id="btn-download-{{ t.id }}" title="Download CSV" download>
+                      <i class="fa-solid fa-file-csv"></i> CSV
+                    </a>
+                    <form action="{{ url_for('delete_target', target_id=t.id) }}" method="POST" class="delete-form" data-target-name="{{ t.name }}" style="display: inline;">
+                      <button type="submit" class="btn btn-danger btn-sm" id="btn-delete-{{ t.id }}" title="Delete Profile">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state" id="empty-state">
+          <i class="fa-solid fa-ghost"></i>
+          <h3>No profiles gathered yet</h3>
+          <p>Register a target and click "Run Intelligence Scan" to begin compiling OSINT data.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  
+</div>
+{% endblock %}

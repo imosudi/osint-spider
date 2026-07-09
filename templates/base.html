@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OSINT Dashboard{% endblock %} - Digital Footprint Compiler</title>
+  
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Style -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Loading Spinner Overlay -->
+  <div id="loader-overlay" class="loader-overlay">
+    <div class="spinner"></div>
+    <div id="loader-text" class="loader-text">Initializing OSINT engine...</div>
+  </div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar" id="navbar">
+    <a href="{{ url_for('index') }}" class="nav-brand" id="nav-brand-link">
+      <i class="fa-solid fa-spider"></i>
+      <span>OSINT Spider</span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('index') }}" id="nav-home-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <span class="badge {% if online %}badge-success{% else %}badge-danger{% endif %}" id="status-badge">
+        <i class="fa-solid {% if online %}fa-wifi{% else %}fa-plane-slash{% endif %}"></i> 
+        {% if online %}Online Mode{% else %}Offline Fallback{% endif %}
+      </span>
+      <span class="badge {% if gemini_active %}badge-gemini{% else %}badge-warning{% endif %}" id="gemini-status-badge" style="margin-left: 0.5rem;">
+        <i class="fa-solid fa-brain"></i>
+        {% if gemini_active %}Gemini AI Active{% else %}Local Fallback{% endif %}
+      </span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Footer -->
+  <footer class="main-footer" id="main-footer">
+    <div>
+      &copy; Copyright Mosudi I. O. <a href="https://mioemi.com" target="_blank" rel="noopener noreferrer" id="footer-link">https://mioemi.com</a>
+    </div>
+  </footer>
+
+  <!-- Custom Scripts -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
