@@ -3,12 +3,12 @@ import csv
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, send_file, abort
 
-from webscraper import run_osint_scraper, check_internet, get_gemini_api_key
+from .webscraper import run_osint_scraper, check_internet, get_gemini_api_key
 
 app = Flask(__name__)
 
-# Directory where CSVs are saved (same as workspace directory)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Directory where CSVs are saved (root directory)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_compiled_targets():
     """Scans the directory for compiled targets and reads their metadata."""
