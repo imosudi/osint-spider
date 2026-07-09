@@ -555,7 +555,6 @@ Each object in the array must contain:
             model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
-                response_mime_type="application/json",
                 tools=[{"google_search": {}}]
             )
         )
@@ -565,7 +564,23 @@ Each object in the array must contain:
             return None
 
         logger.info(f"Gemini raw response text: {response_text}")
-        data = json.loads(response_text)
+        
+        def extract_json_array(text):
+            text_str = text.strip()
+            start = text_str.find('[')
+            end = text_str.rfind(']')
+            if start != -1 and end != -1 and end > start:
+                json_str = text_str[start:end+1]
+                try:
+                    return json.loads(json_str)
+                except json.JSONDecodeError:
+                    pass
+            try:
+                return json.loads(text_str)
+            except json.JSONDecodeError:
+                return None
+
+        data = extract_json_array(response_text)
         logger.info(f"Gemini parsed data type: {type(data)}")
         if isinstance(data, list):
             logger.info(f"Successfully generated dynamic footprint via Gemini AI for target: {target_name}")
