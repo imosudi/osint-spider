@@ -16,9 +16,12 @@
     </div>
   </div>
   
-  <div style="display: flex; gap: 0.75rem;">
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
     <a href="{{ url_for('download', target_id=target_id) }}" class="btn btn-primary" id="btn-profile-download-csv">
       <i class="fa-solid fa-download"></i> Export CSV Registry
+    </a>
+    <a href="{{ url_for('download_json', target_id=target_id) }}" class="btn btn-secondary" id="btn-profile-download-json">
+      <i class="fa-solid fa-file-lines"></i> Export JSON Registry
     </a>
   </div>
 </div>

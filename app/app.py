@@ -3,7 +3,7 @@ import csv
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, send_file, abort
 
-from .webscraper import run_osint_scraper, check_internet, get_gemini_api_key
+from .webscraper import run_osint_scraper, check_internet, get_gemini_api_key, SEARCH_PLATFORM_MAP
 
 app = Flask(__name__)
 
@@ -55,9 +55,11 @@ def get_compiled_targets():
 @app.context_processor
 def inject_global_vars():
     """Injects whether the system is connected to the internet and if Gemini is configured."""
+    platform_count = len(set(SEARCH_PLATFORM_MAP.values()))
     return {
         "online": check_internet(),
-        "gemini_active": bool(get_gemini_api_key())
+        "gemini_active": bool(get_gemini_api_key()),
+        "platform_count": platform_count
     }
 
 @app.route("/save_api_key", methods=["POST"])
@@ -177,6 +179,22 @@ def download(target_id):
     return send_file(
         filepath,
         mimetype="text/csv",
+        as_attachment=True,
+        download_name=filename
+    )
+
+@app.route("/download_json/<target_id>")
+def download_json(target_id):
+    """Endpoint to download the target JSON footprint."""
+    filename = f"{target_id}_osint.json"
+    filepath = os.path.join(BASE_DIR, filename)
+
+    if not os.path.exists(filepath):
+        abort(404)
+
+    return send_file(
+        filepath,
+        mimetype="application/json",
         as_attachment=True,
         download_name=filename
     )
