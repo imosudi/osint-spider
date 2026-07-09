@@ -137,8 +137,10 @@ def profile(target_id):
         abort(404)
         
     rows = []
+    structured_rows = []
     target_name = ""
     target_email = ""
+    json_preview = []
     
     try:
         with open(filepath, mode='r', encoding='utf-8') as f:
@@ -151,6 +153,39 @@ def profile(target_id):
                     if not target_name and len(row) >= 2:
                         target_name = row[0]
                         target_email = row[1]
+
+                    if len(row) >= 7:
+                        evidence_type = "Public profile"
+                        confidence = "Medium"
+                        platform = row[2]
+                        source = row[6]
+
+                        if "GitHub" in platform or "LinkedIn" in platform or "Instagram" in platform or "X" in platform:
+                            evidence_type = "Social profile"
+                            confidence = "High"
+                        elif "Official" in platform or "Website" in platform or "Wikipedia" in platform:
+                            evidence_type = "Official reference"
+                            confidence = "High"
+                        elif "News" in platform or "Article" in platform:
+                            evidence_type = "News article"
+                            confidence = "Medium"
+                        elif "Research" in platform or "Scholar" in platform or "ORCID" in platform:
+                            evidence_type = "Academic reference"
+                            confidence = "High"
+
+                        record = {
+                            "target_name": row[0] if len(row) > 0 else target_name,
+                            "target_email": row[1] if len(row) > 1 else target_email,
+                            "platform": platform,
+                            "handle": row[3],
+                            "url": row[4],
+                            "description": row[5],
+                            "source": source,
+                            "evidence_type": evidence_type,
+                            "confidence": confidence
+                        }
+                        structured_rows.append(record)
+                        json_preview.append(record)
                         
         if not target_name:
             target_name = target_id.replace("_", " ").title()
@@ -158,13 +193,18 @@ def profile(target_id):
     except Exception as e:
         app.logger.error(f"Failed to read target {target_id}: {e}")
         abort(500)
-        
+
+    unique_platforms = sorted({item["platform"] for item in structured_rows if item.get("platform")})
+    
     return render_template(
         "profile.html",
         target_id=target_id,
         target_name=target_name,
         target_email=target_email,
-        rows=rows
+        rows=rows,
+        structured_rows=structured_rows,
+        unique_platforms=unique_platforms,
+        json_preview=json_preview
     )
 
 @app.route("/download/<target_id>")

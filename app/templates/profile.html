@@ -27,71 +27,98 @@
 </div>
 
 <!-- Platform Cards Grid -->
-<h2 style="font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
-  <i class="fa-solid fa-fingerprint" style="color: var(--accent-cyan);"></i>
-  Intelligence Footprints ({{ rows|length }})
-</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+  <h2 style="font-size: 1.4rem; margin: 0; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+    <i class="fa-solid fa-fingerprint" style="color: var(--accent-cyan);"></i>
+    Structured Intelligence Footprints ({{ structured_rows|length }})
+  </h2>
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <span class="badge badge-purple">{{ unique_platforms|length }} platforms</span>
+    <span class="badge badge-cyan">Live structured records</span>
+  </div>
+</div>
 
-<div class="platform-grid" id="platform-cards-grid">
-  {% for r in rows %}
-    {% set platform = r[2] %}
-    {% set handle = r[3] %}
-    {% set url = r[4] %}
-    {% set desc = r[5] %}
-    {% set source = r[6] %}
-    
-    <!-- Platform Card -->
-    <div class="glass-panel platform-card" id="card-{{ platform|lower|replace(' ', '-') }}">
-      <div>
-        <div class="platform-header">
-          <div class="platform-brand">
-            {% if "GitHub" in platform %}
-              <i class="fa-brands fa-github platform-icon platform-github"></i>
-            {% elif "Medium" in platform %}
-              <i class="fa-brands fa-medium platform-icon platform-medium"></i>
-            {% elif "NEAR" in platform %}
-              <i class="fa-solid fa-circle-nodes platform-icon platform-near"></i>
-            {% elif "IoTeX" in platform %}
-              <i class="fa-solid fa-network-wired platform-icon platform-iotex"></i>
-            {% elif "Discord" in platform %}
-              <i class="fa-brands fa-discord platform-icon platform-discord"></i>
-            {% elif "TechCabal" in platform %}
-              <i class="fa-solid fa-tower-broadcast platform-icon platform-techcabal"></i>
-            {% elif "Steam" in platform %}
-              <i class="fa-brands fa-steam platform-icon platform-steam"></i>
-            {% else %}
-              <i class="fa-solid fa-globe platform-icon" style="color: var(--accent-cyan);"></i>
-            {% endif %}
-            <span>{{ platform }}</span>
-          </div>
-          <span class="badge badge-purple" style="font-family: var(--font-mono); font-size: 0.7rem;">Active</span>
-        </div>
-        
+{% if structured_rows %}
+  <div class="platform-grid" id="platform-cards-grid">
+    {% for item in structured_rows %}
+      {% set platform = item.platform %}
+      {% set handle = item.handle %}
+      {% set url = item.url %}
+      {% set desc = item.description %}
+      {% set source = item.source %}
+
+      <div class="glass-panel platform-card" id="card-{{ platform|lower|replace(' ', '-') }}" style="display: flex; flex-direction: column; justify-content: space-between;">
         <div>
-          <span class="platform-username">@{{ handle }}</span>
+          <div class="platform-header">
+            <div class="platform-brand">
+              {% if "GitHub" in platform %}
+                <i class="fa-brands fa-github platform-icon platform-github"></i>
+              {% elif "Medium" in platform %}
+                <i class="fa-brands fa-medium platform-icon platform-medium"></i>
+              {% elif "NEAR" in platform %}
+                <i class="fa-solid fa-circle-nodes platform-icon platform-near"></i>
+              {% elif "IoTeX" in platform %}
+                <i class="fa-solid fa-network-wired platform-icon platform-iotex"></i>
+              {% elif "Discord" in platform %}
+                <i class="fa-brands fa-discord platform-icon platform-discord"></i>
+              {% elif "TechCabal" in platform %}
+                <i class="fa-solid fa-tower-broadcast platform-icon platform-techcabal"></i>
+              {% elif "Steam" in platform %}
+                <i class="fa-brands fa-steam platform-icon platform-steam"></i>
+              {% else %}
+                <i class="fa-solid fa-globe platform-icon" style="color: var(--accent-cyan);"></i>
+              {% endif %}
+              <span>{{ platform }}</span>
+            </div>
+            <span class="badge badge-purple" style="font-family: var(--font-mono); font-size: 0.7rem;">Structured</span>
+          </div>
+
+          <div style="margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <span class="platform-username">@{{ handle if handle and handle != 'N/A' else 'Unknown handle' }}</span>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.2rem;">
+              <span class="badge badge-cyan">{{ item.evidence_type }}</span>
+              <span class="badge badge-purple">{{ item.confidence }} confidence</span>
+            </div>
+          </div>
+
+          <div class="platform-body" style="margin-top: 1rem; line-height: 1.55;">
+            {{ desc }}
+          </div>
         </div>
-        
-        <div class="platform-body" style="margin-top: 1rem;">
-          {{ desc }}
-        </div>
-      </div>
-      
-      <div class="platform-footer">
-        <span class="platform-source" title="{{ source }}">
-          <i class="fa-solid fa-bookmark"></i> {{ source }}
-        </span>
-        
-        {% if url and url != 'N/A' and 'N/A' not in url %}
-          <a href="{{ url }}" target="_blank" rel="noopener noreferrer" class="platform-link" id="link-external-{{ platform|lower|replace(' ', '-') }}">
-            Visit <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i>
-          </a>
-        {% else %}
-          <span style="color: var(--text-muted); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.25rem;">
-            <i class="fa-solid fa-circle-info"></i> Offline Log
+
+        <div class="platform-footer" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.65rem; align-items: flex-start;">
+          <span class="platform-source" title="{{ source }}">
+            <i class="fa-solid fa-bookmark"></i> {{ source }}
           </span>
-        {% endif %}
+
+          {% if url and url != 'N/A' and 'N/A' not in url %}
+            <a href="{{ url }}" target="_blank" rel="noopener noreferrer" class="platform-link" id="link-external-{{ platform|lower|replace(' ', '-') }}">
+              Open source record <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i>
+            </a>
+          {% else %}
+            <span style="color: var(--text-muted); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+              <i class="fa-solid fa-circle-info"></i> Offline / no public link
+            </span>
+          {% endif %}
+        </div>
       </div>
-    </div>
-  {% endfor %}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <i class="fa-solid fa-ghost"></i>
+    <h3>No structured footprint records found</h3>
+    <p>Run a new intelligence scan to populate this dashboard.</p>
+  </div>
+{% endif %}
+
+<div class="glass-panel" style="margin-top: 1.5rem;">
+  <details style="cursor: pointer;">
+    <summary style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fa-solid fa-code"></i>
+      Collapsible JSON preview
+    </summary>
+    <pre style="margin-top: 1rem; padding: 1rem; border-radius: 0.8rem; background: rgba(15, 23, 42, 0.8); color: #e2e8f0; overflow-x: auto; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word;">{{ json_preview | tojson(indent=2) }}</pre>
+  </details>
 </div>
 {% endblock %}
